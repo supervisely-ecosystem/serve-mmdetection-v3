@@ -33,11 +33,7 @@ load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 use_gui_for_local_debug = bool(int(os.environ.get("USE_GUI", "1")))
 
-models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
-
-
-def str_to_class(classname):
-    return getattr(sys.modules[__name__], classname)
+# models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
 
 
 configs_dir = os.path.join(root_source_path, "configs")
@@ -114,6 +110,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 self.dataset_name = dataset_name
 
         self.model = model
+        self.model.test_cfg["score_thr"] = 0.5  # default confidence_thresh
         self.class_names = classes
         sly.logger.debug(f"classes={classes}")
 
@@ -142,10 +139,14 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         for task_type in tasks:
             model_config[task_type] = {}
             if task_type == "object detection":
-                models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
+                # models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
+                models_meta_path = os.path.join(root_source_path, "models", "det_models.json")
             elif task_type == "instance segmentation":
                 models_meta_path = os.path.join(
-                    root_source_path, "models", "instance_segmentation_meta.json"
+                    # root_source_path, "models", "instance_segmentation_meta.json"
+                    root_source_path,
+                    "models",
+                    "segm_models.json",
                 )
             model_yamls = sly.json.load_json_file(models_meta_path)
 
@@ -165,7 +166,8 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                         "config_url"
                     ] = os.path.dirname(model_yml_url)
 
-                    for model in model_info["Models"]:
+                    models = model_info if isinstance(model_info, list) else model_info["Models"]
+                    for model in models:
                         checkpoint_info = OrderedDict()
                         if "exclude" in model_meta.keys():
                             if model_meta["exclude"].endswith("*"):
@@ -187,6 +189,9 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
 
                         checkpoint_info["Name"] = model["Name"]
                         checkpoint_info["Method"] = model["In Collection"]
+                        if "Weights" not in model.keys():
+                            # skip models without weights
+                            continue
                         try:
                             checkpoint_info["Inference Time (ms/im)"] = model["Metadata"][
                                 "inference time (ms/im)"
@@ -293,26 +298,35 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
     def predict(
         self, image_path: str, settings: Dict[str, Any]
     ) -> List[Union[PredictionBBox, PredictionMask]]:
+        # set confidence_thresh
+        conf_tresh = settings.get("confidence_thresh", 0.5)
+        if conf_tresh:
+            self.model.test_cfg["score_thr"] = conf_tresh
+
+        # inference
         result: DetDataSample = inference_detector(self.model, image_path)
         preds = result.pred_instances.cpu().numpy()
 
-        conf_tresh = settings.get("confidence_thresh")
+        # collect predictions
         predictions = []
-        # filter by confidence
         for pred in preds:
             pred: InstanceData
             score = float(pred.scores[0])
             if conf_tresh is not None and score < conf_tresh:
+                # filter by confidence
                 continue
             class_name = self.class_names[pred.labels[0]]
-            if pred.get("masks") is not None:
-                mask = pred.masks[0]
-                # TODO: raise # make back resize
-                # result.img_shape
-                sly_pred = PredictionMask(class_name=class_name, mask=mask, score=score)
+            if self.task_type == "object detection":
+                x1, y1, x2, y2 = pred.bboxes[0].astype(int).tolist()
+                tlbr = [y1, x1, y2, x2]
+                sly_pred = PredictionBBox(class_name=class_name, bbox_tlbr=tlbr, score=score)
             else:
-                bbox = pred.bboxes[0].astype(int).tolist()
-                sly_pred = PredictionBBox(class_name=class_name, bbox_tlbr=bbox, score=score)
+                if pred.get("masks") is None:
+                    raise Exception(
+                        f'The model "{self.checkpoint_name}" can\'t predict masks. Please, try another model.'
+                    )
+                mask = pred.masks[0]
+                sly_pred = PredictionMask(class_name=class_name, mask=mask, score=score)
             predictions.append(sly_pred)
 
         # TODO: test
