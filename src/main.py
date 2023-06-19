@@ -301,6 +301,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         # set confidence_thresh
         conf_tresh = settings.get("confidence_thresh", 0.5)
         if conf_tresh:
+            # TODO: set recursively
             self.model.test_cfg["score_thr"] = conf_tresh
 
         # inference
