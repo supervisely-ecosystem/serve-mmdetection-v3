@@ -23,8 +23,10 @@ from mmdet.apis import inference_detector, init_detector
 from mmdet.registry import DATASETS
 from mmdet.structures import DetDataSample
 from mmengine.structures import InstanceData, PixelData
-from src.sly_dataset import SuperviselyDatasetSplit  # don't remove, needed for dataset registration
 from src.gui import MMDetectionGUI
+
+# dataset registration (don't remove):
+from src.sly_dataset import SuperviselyDatasetSplit
 
 root_source_path = str(Path(__file__).parents[1])
 app_source_path = str(Path(__file__).parents[1])
@@ -33,7 +35,8 @@ load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 use_gui_for_local_debug = bool(int(os.environ.get("USE_GUI", "1")))
 
-# models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
+det_models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
+segm_models_meta_path = os.path.join(root_source_path, "models", "instance_segmentation_meta.json")
 
 
 configs_dir = os.path.join(root_source_path, "configs")
@@ -55,9 +58,9 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
     ) -> None:
         self.device = device
         if self.gui is not None:
-            self.task_type = self.gui.get_task_type()
             model_source = self.gui.get_model_source()
             if model_source == "Pretrained models":
+                self.task_type = self.gui.get_task_type()
                 selected_model = self.gui.get_checkpoint_info()
                 weights_path, config_path = self.download_pretrained_files(
                     selected_model, model_dir
@@ -67,6 +70,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 weights_path, config_path = self.download_custom_files(
                     custom_weights_link, model_dir
                 )
+                self.checkpoint_name = os.path.basename(custom_weights_link)
         else:
             # for local debug without GUI only
             self.task_type = task_type
@@ -83,13 +87,13 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         model = init_detector(cfg, checkpoint=weights_path, device=device)
 
         if model_source == "Custom models":
-            classes = cfg.checkpoint_config.meta.CLASSES
-            self.selected_model_name = cfg.pretrained_model
-            self.checkpoint_name = "custom"
-            self.dataset_name = "custom"
-            if "segm" in cfg.evaluation.metric:
+            classes = cfg.train_dataloader.dataset.selected_classes
+            self.selected_model_name = cfg.sly_metadata.architecture_name
+            self.dataset_name = cfg.sly_metadata.project_name
+            self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
+            if self.task_type == "instance segmentation":
                 obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in classes]
-            else:
+            elif self.task_type == "object detection":
                 obj_classes = [sly.ObjClass(name, sly.Rectangle) for name in classes]
         elif model_source == "Pretrained models":
             dataset_class_name = cfg.dataset_type
@@ -118,8 +122,8 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         self._get_confidence_tag_meta()
         print(f"✅ Model has been successfully loaded on {device.upper()} device")
 
-        # TODO: remove test
-        self.predict("demo_data/image_01.jpg", {})
+        # TODO: debug
+        # self.predict("demo_data/test-lemons.jpeg", {})
 
     def get_classes(self) -> List[str]:
         return self.class_names  # e.g. ["cat", "dog", ...]
@@ -139,15 +143,9 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         for task_type in tasks:
             model_config[task_type] = {}
             if task_type == "object detection":
-                # models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
-                models_meta_path = os.path.join(root_source_path, "models", "det_models.json")
+                models_meta_path = det_models_meta_path
             elif task_type == "instance segmentation":
-                models_meta_path = os.path.join(
-                    # root_source_path, "models", "instance_segmentation_meta.json"
-                    root_source_path,
-                    "models",
-                    "segm_models.json",
-                )
+                models_meta_path = segm_models_meta_path
             model_yamls = sly.json.load_json_file(models_meta_path)
 
             for model_meta in model_yamls:
@@ -266,15 +264,18 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         return weights_dst_path, config_path
 
     def download_custom_files(self, custom_link: str, model_dir: str):
+        # download weights (.pth)
         weight_filename = os.path.basename(custom_link)
         weights_dst_path = os.path.join(model_dir, weight_filename)
-        if not sly.fs.file_exists(weights_dst_path):
-            self.download(
-                src_path=custom_link,
-                dst_path=weights_dst_path,
-            )
+        self.download(
+            src_path=custom_link,
+            dst_path=weights_dst_path,
+        )
+
+        # download config.py
+        custom_dir = os.path.dirname(custom_link)
         config_path = self.download(
-            src_path=os.path.join(os.path.dirname(custom_link), "config.py"),
+            src_path=os.path.join(custom_dir, "config.py"),
             dst_path=os.path.join(model_dir, "config.py"),
         )
 
@@ -301,7 +302,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         # set confidence_thresh
         conf_tresh = settings.get("confidence_thresh", 0.5)
         if conf_tresh:
-            # TODO: set recursively
+            # TODO: may be set recursively?
             self.model.test_cfg["score_thr"] = conf_tresh
 
         # inference
@@ -330,10 +331,10 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 sly_pred = PredictionMask(class_name=class_name, mask=mask, score=score)
             predictions.append(sly_pred)
 
-        # TODO: test
-        ann = self._predictions_to_annotation(image_path, predictions)
-        img = sly.image.read(image_path)
-        ann.draw_pretty(img, thickness=2, opacity=0.4, output_path="test.jpg")
+        # TODO: debug
+        # ann = self._predictions_to_annotation(image_path, predictions)
+        # img = sly.image.read(image_path)
+        # ann.draw_pretty(img, thickness=2, opacity=0.4, output_path="test.jpg")
         return predictions
 
 
