@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="xxx"/>  
+<img src="https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/b5d59262-637a-491c-97da-5984ffac6319"/>  
 
 # Serve MMDetection V3
   
