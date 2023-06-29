@@ -21,9 +21,9 @@
   "session_tags": [
     "deployed_nn"
   ],
-  "icon": "",
+  "icon": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/9effaa36-9d28-49b6-9a0b-ede54addb253",
   "icon_cover": true,
-  "poster": "",
+  "poster": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/b5d59262-637a-491c-97da-5984ffac6319",
   "need_gpu": false,
   "min_agent_version": "6.7.17",
   "community_agent": false,
