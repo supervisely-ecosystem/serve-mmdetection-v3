@@ -19,5 +19,5 @@ jobs:
       IGNORE_SLY_RELEASES: 1
       RELEASE_WITH_SLUG: 1
       CHECK_PREV_RELEASES: 0
-      SUBAPP_PATHS: "__ROOT_APP__, subapp"
+      SUBAPP_PATHS: "__ROOT_APP__"
       
