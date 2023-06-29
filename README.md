@@ -1,7 +1,7 @@
 <div align="center" markdown>
-<img src="xxx"/>  
+<img src="https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/b5d59262-637a-491c-97da-5984ffac6319"/>  
 
-# Serve MMDetection V3
+# Serve MMDetection v3
   
 <p align="center">
   <a href="#Overview">Overview</a> •
@@ -67,8 +67,8 @@ We attach [the notebook](https://github.com/supervisely-ecosystem/mmdetection/bl
 # Related Apps
 
 
-- [Train MMDetection V3](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmdetection/train) - app allows to play with different inference options, monitor metrics charts in real time, and save training artifacts to Team Files.  
-  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/train" src="XX" height="60px" margin-bottom="20px"/>
+- [Train MMDetection V3](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/train-mmdetection-2) - app allows to play with different inference options, monitor metrics charts in real time, and save training artifacts to Team Files.  
+  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-2" src="XXX" height="60px" margin-bottom="20px"/>
 
 - [Apply NN to Images Project](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fproject-dataset) - app allows to play with different inference options and visualize predictions in real time.  Once you choose inference settings you can apply model to all images in your project to visually analyse predictions and perform automatic data pre-labeling.   
     <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://i.imgur.com/M2Tp8lE.png" height="70px" margin-bottom="20px"/>  
