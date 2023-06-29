@@ -84,7 +84,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         elif "init_cfg" in cfg.model.backbone:
             cfg.model.backbone.init_cfg = None
         cfg.model.train_cfg = None
-        model = init_detector(cfg, checkpoint=weights_path, device=device)
+        model = init_detector(cfg, checkpoint=weights_path, device=device, palette=[])
 
         if model_source == "Custom models":
             classes = cfg.train_dataloader.dataset.selected_classes
@@ -123,7 +123,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         print(f"✅ Model has been successfully loaded on {device.upper()} device")
 
         # TODO: debug
-        # self.predict("demo_data/test-lemons.jpeg", {})
+        # self.predict("demo_data/image_01.jpg", {})
 
     def get_classes(self) -> List[str]:
         return self.class_names  # e.g. ["cat", "dog", ...]
@@ -167,10 +167,16 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                     models = model_info if isinstance(model_info, list) else model_info["Models"]
                     for model in models:
                         checkpoint_info = OrderedDict()
+
+                        # exclude checkpoints
                         if "exclude" in model_meta.keys():
                             if model_meta["exclude"].endswith("*"):
                                 if model["Name"].startswith(model_meta["exclude"][:-1]):
                                     continue
+                            elif model_meta["exclude"].startswith("*") and model["Name"].endswith(
+                                model_meta["exclude"][1:]
+                            ):
+                                continue
                         # Saved For Training
                         # checkpoint_info["Use semantic inside"] = False
                         # if "semantic" in model_meta.keys():
@@ -317,7 +323,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             if conf_tresh is not None and score < conf_tresh:
                 # filter by confidence
                 continue
-            class_name = self.class_names[pred.labels[0]]
+            class_name = self.class_names[pred.labels.astype(int)[0]]
             if self.task_type == "object detection":
                 x1, y1, x2, y2 = pred.bboxes[0].astype(int).tolist()
                 tlbr = [y1, x1, y2, x2]
