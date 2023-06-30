@@ -21,3 +21,5 @@ __pycache__
 /app_data
 test.jpg
 demo_data/test-lemons.jpeg
+models/collections.json
+models/models.json
