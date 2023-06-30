@@ -11,17 +11,17 @@
   <a href="#Acknowledgment">Acknowledgment</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/serve-mmdetection-2)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/serve-mmdetection-v3)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/serve-mmdetection-2)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/serve-mmdetection-2.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/serve-mmdetection-2.png)](https://supervise.ly)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/serve-mmdetection-v3)
+[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/serve-mmdetection-v3.png)](https://supervise.ly)
+[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/serve-mmdetection-v3.png)](https://supervise.ly)
  
 </div>
 
 # Overview
 
-Serve MMDetection model as Supervisely Application. MMDetection is an open source toolbox based on PyTorch. Learn more about MMDetection and available models [here](https://github.com/open-mmlab/mmdetection).
+Serve MMDetection model as a Supervisely Application. MMDetection is an open source toolbox based on PyTorch. Learn more about MMDetection and available models [here](https://github.com/open-mmlab/mmdetection).
 
 :star2: MMDetection 3.0.0 is being released as the official version, having achieved new state-of-the-art performance in instance segmentation and rotated object detection tasks.
 
@@ -31,9 +31,7 @@ Application key points:
 
 # How to Run
 
-0. Start the application from Ecosystem.
-
-<img src="XXX" />
+0. Start the application from the context menu of an app or Ecosystem.
 
 **Pretrained models**
 
