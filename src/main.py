@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 import pkg_resources
 from collections import OrderedDict
 
@@ -10,20 +9,18 @@ except:
     from typing_extensions import Literal
 from typing import List, Any, Dict, Union
 from pathlib import Path
-import numpy as np
 import yaml
 from dotenv import load_dotenv
 import torch
 import supervisely as sly
-import supervisely.app.widgets as Widgets
-import supervisely.nn.inference.gui as GUI
 from supervisely.nn.prediction_dto import PredictionBBox, PredictionMask
 from mmengine import Config
 from mmdet.apis import inference_detector, init_detector
 from mmdet.registry import DATASETS
 from mmdet.structures import DetDataSample
-from mmengine.structures import InstanceData, PixelData
+from mmengine.structures import InstanceData
 from src.gui import MMDetectionGUI
+from src import utils
 
 # dataset registration (don't remove):
 from src.sly_dataset import SuperviselyDatasetSplit
@@ -169,27 +166,8 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                         checkpoint_info = OrderedDict()
 
                         # exclude checkpoints
-                        if "exclude" in model_meta.keys():
-                            if model_meta["exclude"].endswith("*"):
-                                if model["Name"].startswith(model_meta["exclude"][:-1]):
-                                    continue
-                            elif model_meta["exclude"].startswith("*") and model["Name"].endswith(
-                                model_meta["exclude"][1:]
-                            ):
-                                continue
-                        # Saved For Training
-                        # checkpoint_info["Use semantic inside"] = False
-                        # if "semantic" in model_meta.keys():
-                        #     if model_meta["semantic"] == "*":
-                        #         checkpoint_info["Use semantic inside"] = True
-                        #     elif model_meta["semantic"].startswith("*") and model_meta["semantic"].endswith("*"):
-                        #         if model_meta["semantic"][1:-1] in model["Name"]:
-                        #             checkpoint_info["Use semantic inside"] = True
-                        #     elif model_meta["semantic"].startswith("*") and model["Name"].endswith(model_meta["semantic"][1:]):
-                        #         checkpoint_info["Use semantic inside"] = True
-                        #     elif model_meta["semantic"].endswith("*") and model_meta["semantic"].startswith("!"):
-                        #         if not model["Name"].startswith(model_meta["semantic"][1:-1]):
-                        #             checkpoint_info["Use semantic inside"] = True
+                        if utils.is_exclude(model["Name"], model_meta.get("exclude")):
+                            continue
 
                         checkpoint_info["Name"] = model["Name"]
                         checkpoint_info["Method"] = model["In Collection"]
