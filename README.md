@@ -56,12 +56,41 @@ Model and directory structure must be acquired via [Train MMDetection V3](https:
 
 # How To Use Custom Model Outside The Platform
 
-We attach [the notebook](https://github.com/supervisely-ecosystem/mmdetection/blob/main/serve/run_image.ipynb) as a template to use your custom model outside Supervisely. Your model should be trained in [Train MMDetection](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmdetection/train) app and the checkpoint should be saved to Team Files.
+We have a [Jupyter Notebook](https://github.com/supervisely-ecosystem/serve-mmdetection-v3/blob/master/inference_outside_sly.ipynb) as an example of how you can use your custom trained model outside Supervisely.
+First, you need to download `config.py` file and model weights (`.pth`) from Superviesly Team Files. Then, run the [notebook](https://github.com/supervisely-ecosystem/serve-mmdetection-v3/blob/master/inference_outside_sly.ipynb) and follow its instructions.
 
-1. Download weights file `.pth` from Team Files. Select a file with the name `best_*.pth` to use a model with the best score or any other model from the `checkpoints` directory.
-2. Download the `config.py` file from Team Files (`checkpoints` directory).
-3. Change paths in the notebook (variables `img_path`, `config_path`, `weights_path`, `device`).
-4. Run the notebook step by step.
+A base code example is here:
+```python
+# Put your paths here:
+img_path = "demo_data/image_01.jpg"
+config_path = "app_data/work_dir/config.py"
+weights_path = "app_data/work_dir/epoch_8.pth"
+
+device = "cuda:0"
+
+import mmcv
+from mmengine import Config
+from mmdet.apis import inference_detector, init_detector
+from mmdet.registry import VISUALIZERS
+from mmdet.visualization.local_visualizer import DetLocalVisualizer
+from PIL import Image
+
+# build the model
+cfg = Config.fromfile(config_path)
+model = init_detector(cfg, weights_path, device=device, palette='random')
+
+# predict
+result = inference_detector(model, img_path)
+print(result)
+
+# visualize
+img = mmcv.imread(img_path, channel_order="rgb")
+visualizer: DetLocalVisualizer = VISUALIZERS.build(model.cfg.visualizer)
+visualizer.dataset_meta = model.dataset_meta
+visualizer.add_datasample("result", img, data_sample=result, draw_gt=False, wait_time=0, show=False)
+res_img = visualizer.get_image()
+Image.fromarray(res_img)
+```
 
 # Related Apps
 
