@@ -23,7 +23,7 @@
 
 Serve MMDetection model as a Supervisely Application. MMDetection is an open-source toolbox based on PyTorch. Learn more about MMDetection and available models [here](https://github.com/open-mmlab/mmdetection).
 
-:star2: MMDetection 3.0.0 is being released as the official version, achieving new state-of-the-art performance in instance segmentation and rotated object detection tasks.
+MMDetection 3.0.0 is being released as the official version, achieving new state-of-the-art performance in instance segmentation and rotated object detection tasks.
 
 Application key points:
 - All Object Detection and Instance Segmentation models from MM Toolbox are available
@@ -67,7 +67,7 @@ We attach [the notebook](https://github.com/supervisely-ecosystem/mmdetection/bl
 
 
 - [Train MMDetection V3](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/train-mmdetection-v3) - app allows to play with different inference options, monitor metrics charts in real time, and save training artifacts to Team Files.  
-  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-2" src="https://github.com/supervisely-ecosystem/serve-mmdetection-v3/assets/115161827/9a995648-3d4a-48a3-b89b-f395ae335086" height="70px" margin-bottom="20px"/>
+  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-v3" src="https://github.com/supervisely-ecosystem/serve-mmdetection-v3/assets/115161827/9a995648-3d4a-48a3-b89b-f395ae335086" height="70px" margin-bottom="20px"/>
 
 - [Apply NN to Images Project](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fproject-dataset) - app allows to play with different inference options and visualize predictions in real time.  Once you choose inference settings you can apply model to all images in your project to visually analyze predictions and perform automatic data pre-labeling.   
     <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://i.imgur.com/M2Tp8lE.png" height="70px" margin-bottom="20px"/>  
