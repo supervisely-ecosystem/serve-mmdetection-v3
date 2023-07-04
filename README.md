@@ -67,16 +67,16 @@ We attach [the notebook](https://github.com/supervisely-ecosystem/mmdetection/bl
 
 
 - [Train MMDetection V3](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/train-mmdetection-v3) - app allows to play with different inference options, monitor metrics charts in real time, and save training artifacts to Team Files.  
-  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-v3" src="https://github.com/supervisely-ecosystem/serve-mmdetection-v3/assets/115161827/9a995648-3d4a-48a3-b89b-f395ae335086" height="70px" margin-bottom="20px"/>
+  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-v3" src="media/r1.png" height="70px" margin-bottom="20px"/>
 
 - [Apply NN to Images Project](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fproject-dataset) - app allows to play with different inference options and visualize predictions in real time.  Once you choose inference settings you can apply model to all images in your project to visually analyze predictions and perform automatic data pre-labeling.   
-    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://i.imgur.com/M2Tp8lE.png" height="70px" margin-bottom="20px"/>  
+    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="media/r2.png" height="70px" margin-bottom="20px"/>  
 
 - [Apply NN to Videos Project](https://ecosystem.supervise.ly/apps/apply-nn-to-videos-project) - app allows to label your videos using served Supervisely models.  
-  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="https://imgur.com/LDo8K1A.png" height="70px" margin-bottom="20px" />
+  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="hmedia/r3.png" height="70px" margin-bottom="20px" />
 
 - [NN Image Labeling](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fannotation-tool) - integrate any deployed NN to Supervisely Image Labeling UI. Configure inference settings and model output classes. Press the `Apply` button (or use a hotkey) and detections with their confidences will immediately appear on the image.   
-    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/annotation-tool" src="https://i.imgur.com/hYEucNt.png" height="70px" margin-bottom="20px"/>
+    <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/annotation-tool" src="media/r4.png" height="70px" margin-bottom="20px"/>
 
 # Acknowledgment
 
