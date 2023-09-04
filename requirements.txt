@@ -1,2 +1,2 @@
 # see docker/mmdet-3.0.Dockerfile
-supervisely==6.72.68
+supervisely==6.72.96
