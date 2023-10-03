@@ -111,7 +111,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 self.dataset_name = dataset_name
 
         self.model = model
-        self.model.test_cfg["score_thr"] = 0.5  # default confidence_thresh
+        self.model.test_cfg["score_thr"] = 0.45  # default confidence_thresh
         self.class_names = classes
         sly.logger.debug(f"classes={classes}")
 
@@ -284,10 +284,21 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         self, image_path: str, settings: Dict[str, Any]
     ) -> List[Union[PredictionBBox, PredictionMask]]:
         # set confidence_thresh
-        conf_tresh = settings.get("confidence_thresh", 0.5)
+        conf_tresh = settings.get("confidence_thresh", 0.45)
         if conf_tresh:
             # TODO: may be set recursively?
             self.model.test_cfg["score_thr"] = conf_tresh
+
+        # set nms_iou_thresh
+        nms_tresh = settings.get("nms_iou_thresh", 0.65)
+        if nms_tresh:
+            test_cfg = self.model.test_cfg
+            if hasattr(test_cfg, "nms"):
+                test_cfg["nms"]["iou_threshold"] = nms_tresh
+            if hasattr(test_cfg, "rcnn") and hasattr(test_cfg["rcnn"], "nms"):
+                test_cfg["rcnn"]["nms"]["iou_threshold"] = nms_tresh
+            if hasattr(test_cfg, "rpn") and hasattr(test_cfg["rpn"], "nms"):
+                test_cfg["rpn"]["nms"]["iou_threshold"] = nms_tresh
 
         # inference
         result: DetDataSample = inference_detector(self.model, image_path)
