@@ -16,7 +16,7 @@
   ],
   "description": "Deploy MMDetection 3.0 model as a REST API service",
   "docker_image": "supervisely/mmdet-3.0:1.0.0",
-  "instance_version": "6.6.7",
+  "instance_version": "6.8.88",
   "task_location": "application_sessions",
   "session_tags": [
     "deployed_nn"
@@ -29,6 +29,6 @@
   "min_agent_version": "6.7.17",
   "community_agent": false,
   "license": {
-    "type": "Apache-2.0" 
+    "type": "Apache-2.0"
   }
 }
