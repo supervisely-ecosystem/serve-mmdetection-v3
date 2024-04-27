@@ -130,7 +130,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         self,
         device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"],
         model_source: Literal["Pretrained models", "Custom models"],
-        task_type: Literal["object detection", "instance segmentation", "pose estimation"],
+        task_type: Literal["object detection", "instance segmentation"],
         checkpoint_name: str,
         checkpoint_url: str,
         config_url: str,
@@ -144,7 +144,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         :param device: The device on which the model will be deployed.
         :type device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"]
         :param task_type: The type of task the model is designed for.
-        :type task_type: Literal["object detection", "instance segmentation", "pose estimation"]
+        :type task_type: Literal["object detection", "instance segmentation"]
         :param checkpoint_name: The name of the checkpoint from which the model is loaded.
         :type checkpoint_name: str
         :param checkpoint_url: The URL where the model checkpoint can be downloaded.
@@ -191,8 +191,6 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         info["videos_support"] = True
         info["async_video_inference_support"] = True
         info["tracking_on_videos_support"] = True
-        if self.task_type == "pose estimation":
-            info["detector_included"] = True
         return info
 
     def get_models(self):
