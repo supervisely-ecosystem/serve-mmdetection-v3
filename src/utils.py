@@ -108,8 +108,8 @@ def filter_models_structure(models: dict):
     for task_type in models.keys():
         for arch_type in models[task_type]:
             for checkpoint in models[task_type][arch_type]["checkpoints"]:
-                checkpoint["meta"]["taskType"] = task_type
-                checkpoint["meta"]["archType"] = arch_type
-                checkpoint["meta"]["archLink"] = models[task_type][arch_type]["config_url"]
+                checkpoint["meta"]["task_type"] = task_type
+                checkpoint["meta"]["arch_type"] = arch_type
+                checkpoint["meta"]["arch_link"] = models[task_type][arch_type]["config_url"]
                 filtered_models.append(checkpoint)
     return filtered_models

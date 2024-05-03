@@ -187,6 +187,10 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
 
     def get_info(self) -> dict:
         info = super().get_info()
+        info["model_name"] = self.selected_model_name
+        info["checkpoint_name"] = self.checkpoint_name
+        info["pretrained_on_dataset"] = self.dataset_name
+        info["device"] = self.device
         info["task type"] = self.task_type
         info["videos_support"] = True
         info["async_video_inference_support"] = True
@@ -274,11 +278,11 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                             )
                             continue
                         checkpoint_info["meta"] = {
-                            "taskType": None,
-                            "archType": None,
-                            "archLink": None,
-                            "weightsURL": model["Weights"],
-                            "configURL": model["Config"],
+                            "task_type": None,
+                            "arch_type": None,
+                            "arch_link": None,
+                            "weights_url": model["Weights"],
+                            "config_url": model["Config"],
                         }
 
                         model_config[task_type][model_meta["model_name"]]["checkpoints"].append(
