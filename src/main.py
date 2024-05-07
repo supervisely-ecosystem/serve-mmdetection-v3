@@ -162,15 +162,18 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         self.task_type = task_type
 
         local_weights_path = os.path.join(self.model_dir, checkpoint_name)
-        if not sly.fs.file_exists(local_weights_path):
+        if model_source == "Pretrained models":
+            if not sly.fs.file_exists(local_weights_path):
+                self.download(
+                    src_path=checkpoint_url,
+                    dst_path=local_weights_path,
+                )
+            local_config_path = os.path.join(root_source_path, config_url)
+        else:
             self.download(
                 src_path=checkpoint_url,
                 dst_path=local_weights_path,
             )
-
-        if model_source == "Pretrained models":
-            local_config_path = os.path.join(root_source_path, config_url)
-        else:
             local_config_path = os.path.join(self.model_dir, "config.py")
             if sly.fs.file_exists(local_config_path):
                 silent_remove(local_config_path)
@@ -178,6 +181,11 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 src_path=config_url,
                 dst_path=local_config_path,
             )
+            if not sly.fs.file_exists(local_config_path):
+                raise FileNotFoundError(
+                    f"Config file not found: {local_config_path}. "
+                    "Config should be placed in the same directory as the checkpoint file."
+                )
 
         cfg = Config.fromfile(local_config_path)
         if "pretrained" in cfg.model:
