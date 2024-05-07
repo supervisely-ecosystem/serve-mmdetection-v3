@@ -89,7 +89,10 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         elif model_source == "Custom models":
             model_params = self.custom_models_table.get_selected_model_params()
 
+        self.selected_model_name = model_params.get("arch_type")
+        self.checkpoint_name = model_params.get("checkpoint_name")
         self.task_type = model_params.get("task_type")
+
         deploy_params = {
             "device": self.device,
             **model_params,
@@ -102,6 +105,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         if model_source == "Custom models":
             classes = cfg.train_dataloader.dataset.selected_classes
             self.selected_model_name = cfg.sly_metadata.architecture_name
+            self.checkpoint_name = checkpoint_name
             self.dataset_name = cfg.sly_metadata.project_name
             self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
             if self.task_type == "instance segmentation":
