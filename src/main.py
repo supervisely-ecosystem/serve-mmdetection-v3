@@ -183,7 +183,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             )
             if not sly.fs.file_exists(local_config_path):
                 raise FileNotFoundError(
-                    f"Config file not found: {local_config_path}. "
+                    f"Config file not found: {config_url}. "
                     "Config should be placed in the same directory as the checkpoint file."
                 )
 
