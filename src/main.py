@@ -3,6 +3,13 @@ import shutil
 import pkg_resources
 from collections import OrderedDict
 
+from supervisely.app.widgets import (
+    Widget,
+    PretrainedModelsSelector,
+    CustomModelsSelector,
+    RadioTabs,
+)
+
 try:
     from typing import Literal
 except:
@@ -24,17 +31,20 @@ from src import utils
 
 # dataset registration (don't remove):
 from src.sly_dataset import SuperviselyDatasetSplit
+from supervisely.io.fs import get_file_name, silent_remove
 
 root_source_path = str(Path(__file__).parents[1])
 app_source_path = str(Path(__file__).parents[1])
 load_dotenv(os.path.join(app_source_path, "local.env"))
 load_dotenv(os.path.expanduser("~/supervisely.env"))
 
-use_gui_for_local_debug = bool(int(os.environ.get("USE_GUI", "1")))
-
 det_models_meta_path = os.path.join(root_source_path, "models", "detection_meta.json")
 segm_models_meta_path = os.path.join(root_source_path, "models", "instance_segmentation_meta.json")
 
+api = sly.Api.from_env()
+team_id = sly.env.team_id()
+
+use_gui_for_local_debug = bool(int(os.environ.get("USE_GUI", "1")))
 
 configs_dir = os.path.join(root_source_path, "configs")
 mmdet_ver = pkg_resources.get_distribution("mmdet").version
@@ -48,44 +58,54 @@ if os.path.isdir(f"/tmp/mmdet/mmdetection-{mmdet_ver}"):
 
 
 class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
-    def load_on_device(
-        self,
-        model_dir: str,
-        device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"] = "cpu",
-    ) -> None:
-        self.device = device
-        if self.gui is not None:
-            model_source = self.gui.get_model_source()
-            if model_source == "Pretrained models":
-                self.task_type = self.gui.get_task_type()
-                selected_model = self.gui.get_checkpoint_info()
-                weights_path, config_path = self.download_pretrained_files(
-                    selected_model, model_dir
-                )
-            elif model_source == "Custom models":
-                custom_weights_link = self.gui.get_custom_link()
-                weights_path, config_path = self.download_custom_files(
-                    custom_weights_link, model_dir
-                )
-                self.checkpoint_name = os.path.basename(custom_weights_link)
-        else:
-            # for local debug without GUI only
-            self.task_type = task_type
-            model_source = "Pretrained models"
-            weights_path, config_path = self.download_pretrained_files(
-                selected_checkpoint, model_dir
-            )
-        cfg = Config.fromfile(config_path)
-        if "pretrained" in cfg.model:
-            cfg.model.pretrained = None
-        elif "init_cfg" in cfg.model.backbone:
-            cfg.model.backbone.init_cfg = None
-        cfg.model.train_cfg = None
-        model = init_detector(cfg, checkpoint=weights_path, device=device, palette=[])
+    def initialize_custom_gui(self) -> Widget:
+        """Create custom GUI layout for model selection. This method is called once when the application is started."""
+        models = self.get_models()
+        filtered_models = utils.filter_models_structure(models)
+        self.pretrained_models_table = PretrainedModelsSelector(filtered_models)
+        custom_models = sly.nn.checkpoints.mmdetection3.get_list(api, team_id)
+        self.custom_models_table = CustomModelsSelector(
+            team_id,
+            custom_models,
+            show_custom_checkpoint_path=True,
+            custom_checkpoint_task_types=[
+                "object detection",
+                "instance segmentation",
+            ],
+        )
 
+        self.model_source_tabs = RadioTabs(
+            titles=["Pretrained models", "Custom models"],
+            descriptions=["Publicly available models", "Models trained by you in Supervisely"],
+            contents=[self.pretrained_models_table, self.custom_models_table],
+        )
+        return self.model_source_tabs
+
+    def get_params_from_gui(self) -> dict:
+        model_source = self.model_source_tabs.get_active_tab()
+        self.device = self.gui.get_device()
+        if model_source == "Pretrained models":
+            model_params = self.pretrained_models_table.get_selected_model_params()
+        elif model_source == "Custom models":
+            model_params = self.custom_models_table.get_selected_model_params()
+
+        self.selected_model_name = model_params.get("arch_type")
+        self.checkpoint_name = model_params.get("checkpoint_name")
+        self.task_type = model_params.get("task_type")
+
+        deploy_params = {
+            "device": self.device,
+            **model_params,
+        }
+        return deploy_params
+
+    def load_model_meta(
+        self, model_source: str, cfg: Config, checkpoint_name: str = None, arch_type: str = None
+    ):
         if model_source == "Custom models":
             classes = cfg.train_dataloader.dataset.selected_classes
             self.selected_model_name = cfg.sly_metadata.architecture_name
+            self.checkpoint_name = checkpoint_name
             self.dataset_name = cfg.sly_metadata.project_name
             self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
             if self.task_type == "instance segmentation":
@@ -100,41 +120,96 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 obj_classes = [sly.ObjClass(name, sly.Rectangle) for name in classes]
             elif self.task_type == "instance segmentation":
                 obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in classes]
-            if self.gui is not None:
-                self.selected_model_name = list(self.gui.get_model_info().keys())[0]
-                checkpoint_info = self.gui.get_checkpoint_info()
-                self.checkpoint_name = checkpoint_info["Name"]
-                self.dataset_name = checkpoint_info["Dataset"]
-            else:
-                self.selected_model_name = selected_model_name
-                self.checkpoint_name = selected_checkpoint["Name"]
-                self.dataset_name = dataset_name
 
-        self.model = model
+            self.selected_model_name = arch_type
+            self.checkpoint_name = checkpoint_name
+            self.dataset_name = cfg.dataset_type
+
         self.model.test_cfg["score_thr"] = 0.45  # default confidence_thresh
         self.class_names = classes
-        sly.logger.debug(f"classes={classes}")
-
         self._model_meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(obj_classes))
         self._get_confidence_tag_meta()
-        print(f"✅ Model has been successfully loaded on {device.upper()} device")
 
-        # TODO: debug
-        # self.predict("demo_data/image_01.jpg", {})
+    def load_model(
+        self,
+        device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"],
+        model_source: Literal["Pretrained models", "Custom models"],
+        task_type: Literal["object detection", "instance segmentation"],
+        checkpoint_name: str,
+        checkpoint_url: str,
+        config_url: str,
+        arch_type: str = None,
+    ):
+        """
+        Load model method is used to deploy model.
 
-    def get_classes(self) -> List[str]:
-        return self.class_names  # e.g. ["cat", "dog", ...]
+        :param model_source: Specifies whether the model is pretrained or custom.
+        :type model_source: Literal["Pretrained models", "Custom models"]
+        :param device: The device on which the model will be deployed.
+        :type device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"]
+        :param task_type: The type of task the model is designed for.
+        :type task_type: Literal["object detection", "instance segmentation"]
+        :param checkpoint_name: The name of the checkpoint from which the model is loaded.
+        :type checkpoint_name: str
+        :param checkpoint_url: The URL where the model checkpoint can be downloaded.
+        :type checkpoint_url: str
+        :param config_url: The URL where the model config can be downloaded.
+        :type config_url: str
+        :param arch_type: The architecture type of the model.
+        :type arch_type: str
+        """
+        self.device = device
+        self.task_type = task_type
+
+        local_weights_path = os.path.join(self.model_dir, checkpoint_name)
+        if model_source == "Pretrained models":
+            if not sly.fs.file_exists(local_weights_path):
+                self.download(
+                    src_path=checkpoint_url,
+                    dst_path=local_weights_path,
+                )
+            local_config_path = os.path.join(root_source_path, config_url)
+        else:
+            self.download(
+                src_path=checkpoint_url,
+                dst_path=local_weights_path,
+            )
+            local_config_path = os.path.join(self.model_dir, "config.py")
+            if sly.fs.file_exists(local_config_path):
+                silent_remove(local_config_path)
+            self.download(
+                src_path=config_url,
+                dst_path=local_config_path,
+            )
+            if not sly.fs.file_exists(local_config_path):
+                raise FileNotFoundError(
+                    f"Config file not found: {config_url}. "
+                    "Config should be placed in the same directory as the checkpoint file."
+                )
+
+        cfg = Config.fromfile(local_config_path)
+        if "pretrained" in cfg.model:
+            cfg.model.pretrained = None
+        elif "init_cfg" in cfg.model.backbone:
+            cfg.model.backbone.init_cfg = None
+        cfg.model.train_cfg = None
+
+        self.model = init_detector(cfg, checkpoint=local_weights_path, device=device, palette=[])
+        self.load_model_meta(model_source, cfg, checkpoint_name, arch_type)
 
     def get_info(self) -> dict:
         info = super().get_info()
-        info["task type"] = self.task_type
         info["model_name"] = self.selected_model_name
         info["checkpoint_name"] = self.checkpoint_name
         info["pretrained_on_dataset"] = self.dataset_name
         info["device"] = self.device
+        info["task type"] = self.task_type
+        info["videos_support"] = True
+        info["async_video_inference_support"] = True
+        info["tracking_on_videos_support"] = True
         return info
 
-    def get_models(self, add_links=False):
+    def get_models(self):
         tasks = ["object detection", "instance segmentation"]
         model_config = {}
         for task_type in tasks:
@@ -157,9 +232,9 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                         "paper_from"
                     ]
                     model_config[task_type][model_meta["model_name"]]["year"] = model_meta["year"]
-                    model_config[task_type][model_meta["model_name"]][
-                        "config_url"
-                    ] = os.path.dirname(model_yml_url)
+                    model_config[task_type][model_meta["model_name"]]["config_url"] = (
+                        os.path.dirname(model_yml_url)
+                    )
 
                     models = model_info if isinstance(model_info, list) else model_info["Models"]
                     for model in models:
@@ -169,7 +244,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                         if utils.is_exclude(model["Name"], model_meta.get("exclude")):
                             continue
 
-                        checkpoint_info["Name"] = model["Name"]
+                        checkpoint_info["Model"] = model["Name"]
                         checkpoint_info["Method"] = model["In Collection"]
                         if "Weights" not in model.keys():
                             # skip models without weights
@@ -211,74 +286,24 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                             weights_file = model["Weights"]
                         except KeyError as e:
                             sly.logger.info(
-                                f'Weights not found. Model: {model_meta["model_name"]}, checkpoint: {checkpoint_info["Name"]}'
+                                f'Weights not found. Model: {model_meta["model_name"]}, checkpoint: {checkpoint_info["Model"]}'
                             )
                             continue
-                        if add_links:
-                            checkpoint_info["config_file"] = model["Config"]
-                            checkpoint_info["weights_file"] = weights_file
+                        checkpoint_info["meta"] = {
+                            "task_type": None,
+                            "arch_type": None,
+                            "arch_link": None,
+                            "weights_url": model["Weights"],
+                            "config_url": model["Config"],
+                        }
+
                         model_config[task_type][model_meta["model_name"]]["checkpoints"].append(
                             checkpoint_info
                         )
         return model_config
 
-    def download_pretrained_files(self, selected_model: Dict[str, str], model_dir: str):
-        gui: MMDetectionGUI
-        task_type = self.gui.get_task_type()
-        models = self.get_models(add_links=True)[task_type]
-        if self.gui is not None:
-            model_name = list(self.gui.get_model_info().keys())[0]
-        else:
-            # for local debug without GUI only
-            model_name = selected_model_name
-        full_model_info = selected_model
-        for model_info in models[model_name]["checkpoints"]:
-            if model_info["Name"] == selected_model["Name"]:
-                full_model_info = model_info
-        weights_ext = sly.fs.get_file_ext(full_model_info["weights_file"])
-        config_ext = sly.fs.get_file_ext(full_model_info["config_file"])
-        weights_dst_path = os.path.join(model_dir, f"{selected_model['Name']}{weights_ext}")
-        if not sly.fs.file_exists(weights_dst_path):
-            self.download(src_path=full_model_info["weights_file"], dst_path=weights_dst_path)
-        config_path = self.download(
-            src_path=full_model_info["config_file"],
-            dst_path=os.path.join(model_dir, f"config{config_ext}"),
-        )
-
-        return weights_dst_path, config_path
-
-    def download_custom_files(self, custom_link: str, model_dir: str):
-        # download weights (.pth)
-        weight_filename = os.path.basename(custom_link)
-        weights_dst_path = os.path.join(model_dir, weight_filename)
-        self.download(
-            src_path=custom_link,
-            dst_path=weights_dst_path,
-        )
-
-        # download config.py
-        custom_dir = os.path.dirname(custom_link)
-        config_path = self.download(
-            src_path=os.path.join(custom_dir, "config.py"),
-            dst_path=os.path.join(model_dir, "config.py"),
-        )
-
-        return weights_dst_path, config_path
-
-    def initialize_gui(self) -> None:
-        models = self.get_models()
-        for task_type in ["object detection", "instance segmentation"]:
-            for model_group in models[task_type].keys():
-                models[task_type][model_group]["checkpoints"] = self._preprocess_models_list(
-                    models[task_type][model_group]["checkpoints"]
-                )
-        self._gui = MMDetectionGUI(
-            models,
-            self.api,
-            support_pretrained_models=True,
-            support_custom_models=True,
-            custom_model_link_type="file",
-        )
+    def get_classes(self) -> List[str]:
+        return self.class_names
 
     def predict(
         self, image_path: str, settings: Dict[str, Any]
@@ -352,14 +377,16 @@ if sly.is_production() or use_gui_for_local_debug is True:
     m.serve()
 else:
     # for local development and debugging without GUI
-    task_type = "object detection"
-    models = m.get_models(add_links=True)[task_type]
-    selected_model_name = "TOOD"
-    dataset_name = "COCO"
-    selected_checkpoint = models[selected_model_name]["checkpoints"][0]
+    # task_type = "object detection"
+    # models = utils.get_models()[task_type]
+    # selected_model_name = "TOOD"
+    # dataset_name = "COCO"
+    # selected_checkpoint = models[selected_model_name]["checkpoints"][0]
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Using device:", device)
-    m.load_on_device(m.model_dir, device)
+    deploy_params = m.get_params_from_gui()
+    m.load_model(**deploy_params)
     image_path = "./demo_data/image_01.jpg"
     results = m.predict(image_path, m.custom_inference_settings_dict)
     vis_path = "./demo_data/image_01_prediction.jpg"

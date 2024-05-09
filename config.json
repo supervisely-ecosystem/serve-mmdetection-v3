@@ -1,34 +1,32 @@
 {
-  "type": "app",
-  "version": "2.0.0",
-  "name": "Serve MMDetection 3.0",
-  "entrypoint": "python -m uvicorn src.main:m.app --host 0.0.0.0 --port 8000",
-  "port": 8000,
-  "categories": [
-    "neural network",
-    "images",
-    "videos",
-    "object detection",
-    "instance segmentation",
-    "detection & tracking",
-    "segmentation & tracking",
-    "serve"
-  ],
-  "description": "Deploy MMDetection 3.0 model as a REST API service",
-  "docker_image": "supervisely/mmdet-3.0:1.0.0",
-  "instance_version": "6.8.88",
-  "task_location": "application_sessions",
-  "session_tags": [
-    "deployed_nn"
-  ],
-  "icon": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/9effaa36-9d28-49b6-9a0b-ede54addb253",
-  "icon_cover": true,
-  "poster": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/b5d59262-637a-491c-97da-5984ffac6319",
-  "need_gpu": false,
-  "gpu": "preferred",
-  "min_agent_version": "6.7.17",
-  "community_agent": false,
-  "license": {
-    "type": "Apache-2.0"
-  }
+	"type": "app",
+	"version": "2.0.0",
+	"name": "Serve MMDetection 3.0",
+	"entrypoint": "python -m uvicorn src.main:m.app --host 0.0.0.0 --port 8000",
+	"port": 8000,
+	"categories": [
+		"neural network",
+		"images",
+		"videos",
+		"object detection",
+		"instance segmentation",
+		"detection & tracking",
+		"segmentation & tracking",
+		"serve"
+	],
+	"description": "Deploy MMDetection 3.0 model as a REST API service",
+	"docker_image": "supervisely/mmdet-3.0:1.0.1",
+	"instance_version": "6.6.7",
+	"task_location": "application_sessions",
+	"session_tags": ["deployed_nn"],
+	"icon": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/9effaa36-9d28-49b6-9a0b-ede54addb253",
+	"icon_cover": true,
+	"poster": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/b5d59262-637a-491c-97da-5984ffac6319",
+	"need_gpu": false,
+	"gpu": "preferred",
+	"min_agent_version": "6.7.17",
+	"community_agent": false,
+	"license": {
+		"type": "Apache-2.0"
+	}
 }

@@ -101,3 +101,15 @@ def parse_yaml_metafile(yaml_file, exclude: str = None):
         models.append(model_item)
 
     return collections, models
+
+
+def filter_models_structure(models: dict):
+    filtered_models = []
+    for task_type in models.keys():
+        for arch_type in models[task_type]:
+            for checkpoint in models[task_type][arch_type]["checkpoints"]:
+                checkpoint["meta"]["task_type"] = task_type
+                checkpoint["meta"]["arch_type"] = arch_type
+                checkpoint["meta"]["arch_link"] = models[task_type][arch_type]["config_url"]
+                filtered_models.append(checkpoint)
+    return filtered_models
