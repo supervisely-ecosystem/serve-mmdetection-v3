@@ -88,6 +88,17 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             model_params = self.pretrained_models_table.get_selected_model_params()
         elif model_source == "Custom models":
             model_params = self.custom_models_table.get_selected_model_params()
+            if self.custom_models_table.use_custom_checkpoint_path():
+                checkpoint_path = self.custom_models_table.get_custom_checkpoint_path()
+                model_params["config_url"] = (
+                    f"{os.path.dirname(checkpoint_path).rstrip('/')}/config.py"
+                )
+                file_info = api.file.exists(team_id, model_params["config_url"])
+                if file_info is None:
+                    raise FileNotFoundError(
+                        f"Config file not found: {model_params['config_url']}. "
+                        "Config should be placed in the same directory as the checkpoint file."
+                    )
 
         self.selected_model_name = model_params.get("arch_type")
         self.checkpoint_name = model_params.get("checkpoint_name")
