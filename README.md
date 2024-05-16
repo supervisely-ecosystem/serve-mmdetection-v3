@@ -109,5 +109,3 @@ Image.fromarray(res_img)
 # Acknowledgment
 
 This app is based on the great work `MMDetection` ([github](https://github.com/open-mmlab/mmdetection)). ![GitHub Org's stars](https://img.shields.io/github/stars/open-mmlab/mmdetection?style=social)
-
-

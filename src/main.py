@@ -113,33 +113,45 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
     def load_model_meta(
         self, model_source: str, cfg: Config, checkpoint_name: str = None, arch_type: str = None
     ):
-        if model_source == "Custom models":
-            classes = cfg.train_dataloader.dataset.selected_classes
-            self.selected_model_name = cfg.sly_metadata.architecture_name
+        def set_common_meta(classes, task_type):
+            obj_classes = [
+                sly.ObjClass(
+                    name, sly.Bitmap if task_type == "instance segmentation" else sly.Rectangle
+                )
+                for name in classes
+            ]
+            self.selected_model_name = arch_type
             self.checkpoint_name = checkpoint_name
-            self.dataset_name = cfg.sly_metadata.project_name
-            self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
-            if self.task_type == "instance segmentation":
-                obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in classes]
-            elif self.task_type == "object detection":
-                obj_classes = [sly.ObjClass(name, sly.Rectangle) for name in classes]
+            self.dataset_name = cfg.dataset_type
+            self.class_names = classes
+            self._model_meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(obj_classes))
+            self._get_confidence_tag_meta()
+
+        if model_source == "Custom models":
+            is_custom_checkpoint_path = self.custom_models_table.use_custom_checkpoint_path()
+            if is_custom_checkpoint_path and cfg.dataset_type != "SuperviselyDatasetSplit":
+                dataset_class_name = cfg.dataset_type
+                dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
+                classes = dataset_meta["classes"]
+                self.dataset_name = cfg.dataset_type
+                set_common_meta(classes, self.task_type)
+
+            else:
+                classes = cfg.train_dataloader.dataset.selected_classes
+                self.selected_model_name = cfg.sly_metadata.architecture_name
+                self.checkpoint_name = checkpoint_name
+                self.dataset_name = cfg.sly_metadata.project_name
+                self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
+                set_common_meta(classes, self.task_type)
+
         elif model_source == "Pretrained models":
             dataset_class_name = cfg.dataset_type
             dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
             classes = dataset_meta["classes"]
-            if self.task_type == "object detection":
-                obj_classes = [sly.ObjClass(name, sly.Rectangle) for name in classes]
-            elif self.task_type == "instance segmentation":
-                obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in classes]
-
-            self.selected_model_name = arch_type
-            self.checkpoint_name = checkpoint_name
             self.dataset_name = cfg.dataset_type
+            set_common_meta(classes, self.task_type)
 
         self.model.test_cfg["score_thr"] = 0.45  # default confidence_thresh
-        self.class_names = classes
-        self._model_meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(obj_classes))
-        self._get_confidence_tag_meta()
 
     def load_model(
         self,
