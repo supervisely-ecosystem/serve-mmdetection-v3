@@ -197,7 +197,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 src_path=checkpoint_url,
                 dst_path=local_weights_path,
             )
-            local_config_path = os.path.join(self.model_dir, "config.py")
+            local_config_path = os.path.join(configs_dir, "custom", "config.py")
             if sly.fs.file_exists(local_config_path):
                 silent_remove(local_config_path)
             self.download(
@@ -210,15 +210,19 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                     "Config should be placed in the same directory as the checkpoint file."
                 )
 
-        cfg = Config.fromfile(local_config_path)
-        if "pretrained" in cfg.model:
-            cfg.model.pretrained = None
-        elif "init_cfg" in cfg.model.backbone:
-            cfg.model.backbone.init_cfg = None
-        cfg.model.train_cfg = None
-
-        self.model = init_detector(cfg, checkpoint=local_weights_path, device=device, palette=[])
-        self.load_model_meta(model_source, cfg, checkpoint_name, arch_type)
+        try:
+            cfg = Config.fromfile(local_config_path)
+            if "pretrained" in cfg.model:
+                cfg.model.pretrained = None
+            elif "init_cfg" in cfg.model.backbone:
+                cfg.model.backbone.init_cfg = None
+            cfg.model.train_cfg = None
+            self.model = init_detector(
+                cfg, checkpoint=local_weights_path, device=device, palette=[]
+            )
+            self.load_model_meta(model_source, cfg, checkpoint_name, arch_type)
+        except KeyError as e:
+            raise KeyError(f"Error loading config file: {local_config_path}. Error: {e}")
 
     def get_info(self) -> dict:
         info = super().get_info()
