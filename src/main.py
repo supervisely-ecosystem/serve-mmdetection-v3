@@ -130,9 +130,16 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         if model_source == "Custom models":
             is_custom_checkpoint_path = self.custom_models_table.use_custom_checkpoint_path()
             if is_custom_checkpoint_path and cfg.dataset_type != "SuperviselyDatasetSplit":
-                dataset_class_name = cfg.dataset_type
-                dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
-                classes = dataset_meta["classes"]
+
+                # classes from .pth
+                classes = self.model.dataset_meta.get("classes", [])
+                if classes == []:
+                    # classes from config
+                    dataset_class_name = cfg.dataset_type
+                    dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
+                    classes = dataset_meta.get("classes", [])
+                    if classes == []:
+                        raise ValueError("Classes not found in the .pth and config file")
                 self.dataset_name = cfg.dataset_type
                 set_common_meta(classes, self.task_type)
 
