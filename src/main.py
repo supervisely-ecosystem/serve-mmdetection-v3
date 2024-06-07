@@ -71,7 +71,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             team_id,
             custom_checkpoints,
             show_custom_checkpoint_path=True,
-            custom_checkpoint_cv_tasks=[
+            custom_checkpoint_task_types=[
                 "object detection",
                 "instance segmentation",
             ],
