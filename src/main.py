@@ -20,7 +20,7 @@ import yaml
 from dotenv import load_dotenv
 import torch
 import supervisely as sly
-from supervisely.nn.checkpoints.mmdetection3 import MMDetection3Checkpoint
+from supervisely.nn.models.mmdetection import MMDetection3
 from supervisely.nn.prediction_dto import PredictionBBox, PredictionMask
 from mmengine import Config
 from mmdet.apis import inference_detector, init_detector
@@ -65,11 +65,11 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         filtered_models = utils.filter_models_structure(models)
         self.pretrained_models_table = PretrainedModelsSelector(filtered_models)
 
-        mmdet3_checkpoint = MMDetection3Checkpoint(team_id)
-        custom_models = mmdet3_checkpoint.get_list()
+        sly_mmdet3 = MMDetection3(team_id)
+        custom_checkpoints = sly_mmdet3.get_checkpoints()
         self.custom_models_table = CustomModelsSelector(
             team_id,
-            custom_models,
+            custom_checkpoints,
             show_custom_checkpoint_path=True,
             custom_checkpoint_task_types=[
                 "object detection",
