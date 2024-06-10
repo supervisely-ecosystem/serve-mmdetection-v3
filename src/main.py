@@ -20,6 +20,7 @@ import yaml
 from dotenv import load_dotenv
 import torch
 import supervisely as sly
+from supervisely.nn.artifacts.mmdetection import MMDetection3
 from supervisely.nn.prediction_dto import PredictionBBox, PredictionMask
 from mmengine import Config
 from mmdet.apis import inference_detector, init_detector
@@ -63,10 +64,12 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         models = self.get_models()
         filtered_models = utils.filter_models_structure(models)
         self.pretrained_models_table = PretrainedModelsSelector(filtered_models)
-        custom_models = sly.nn.checkpoints.mmdetection3.get_list(api, team_id)
+
+        mmdet3_artifacts = MMDetection3(team_id)
+        custom_checkpoints = mmdet3_artifacts.get_list()
         self.custom_models_table = CustomModelsSelector(
             team_id,
-            custom_models,
+            custom_checkpoints,
             show_custom_checkpoint_path=True,
             custom_checkpoint_task_types=[
                 "object detection",
@@ -177,7 +180,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         :type model_source: Literal["Pretrained models", "Custom models"]
         :param device: The device on which the model will be deployed.
         :type device: Literal["cpu", "cuda", "cuda:0", "cuda:1", "cuda:2", "cuda:3"]
-        :param task_type: The type of task the model is designed for.
+        :param task_type: The type of the computer vision task the model is designed for.
         :type task_type: Literal["object detection", "instance segmentation"]
         :param checkpoint_name: The name of the checkpoint from which the model is loaded.
         :type checkpoint_name: str
