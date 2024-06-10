@@ -1,4 +1,4 @@
-FROM supervisely/base-py-sdk:6.72.52
+FROM supervisely/base-py-sdk:6.72.68
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y build-essential
