@@ -154,7 +154,6 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 self.dataset_name = cfg.sly_metadata.project_name
                 self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
                 set_common_meta(classes, self.task_type)
-            w.workflow_input(api, self.custom_models_table.get_custom_checkpoint_path())
         elif model_source == "Pretrained models":
             dataset_class_name = cfg.dataset_type
             dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
@@ -208,6 +207,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 src_path=checkpoint_url,
                 dst_path=local_weights_path,
             )
+            w.workflow_input(api, checkpoint_url)
             local_config_path = os.path.join(configs_dir, "custom", "config.py")
             if sly.fs.file_exists(local_config_path):
                 silent_remove(local_config_path)
