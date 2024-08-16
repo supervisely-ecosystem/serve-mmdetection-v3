@@ -33,7 +33,7 @@ from src import utils
 # dataset registration (don't remove):
 from src.sly_dataset import SuperviselyDatasetSplit
 from supervisely.io.fs import get_file_name, silent_remove
-import workflow as w
+import src.workflow as w
 
 root_source_path = str(Path(__file__).parents[1])
 app_source_path = str(Path(__file__).parents[1])
