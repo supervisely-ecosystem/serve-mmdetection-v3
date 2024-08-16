@@ -33,6 +33,7 @@ from src import utils
 # dataset registration (don't remove):
 from src.sly_dataset import SuperviselyDatasetSplit
 from supervisely.io.fs import get_file_name, silent_remove
+import workflow as w
 
 root_source_path = str(Path(__file__).parents[1])
 app_source_path = str(Path(__file__).parents[1])
@@ -153,7 +154,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 self.dataset_name = cfg.sly_metadata.project_name
                 self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
                 set_common_meta(classes, self.task_type)
-
+            w.workflow_input(api, self.custom_models_table.get_custom_checkpoint_path())
         elif model_source == "Pretrained models":
             dataset_class_name = cfg.dataset_type
             dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
