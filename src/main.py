@@ -242,7 +242,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             checkpoint_name = os.path.splitext(checkpoint_name)[0]
         else:
             custom_checkpoint_path = checkpoint_url
-            file_id = self.api.file.get_info_by_path(self.team_id, checkpoint_url).id
+            file_id = self.api.file.get_info_by_path(team_id, checkpoint_url).id
             checkpoint_url = self.api.file.get_url(file_id)
         self.checkpoint_info = CheckpointInfo(
             checkpoint_name=checkpoint_name,
