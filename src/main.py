@@ -22,7 +22,7 @@ import torch
 import supervisely as sly
 from supervisely.nn.artifacts.mmdetection import MMDetection3
 from supervisely.nn.prediction_dto import PredictionBBox, PredictionMask
-from supervisely.nn.inference import TaskType, CheckpointInfo
+from supervisely.nn.inference import TaskType, CheckpointInfo, RuntimeType
 from mmengine import Config
 from mmdet.apis import inference_detector, init_detector
 from mmdet.registry import DATASETS
@@ -195,6 +195,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         """
         self.device = device
         self.task_type = task_type
+        self.runtime = RuntimeType.PYTORCH
 
         local_weights_path = os.path.join(self.model_dir, checkpoint_name)
         if model_source == "Pretrained models":
