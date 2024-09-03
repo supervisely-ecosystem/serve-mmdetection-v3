@@ -22,6 +22,7 @@ import torch
 import supervisely as sly
 from supervisely.nn.artifacts.mmdetection import MMDetection3
 from supervisely.nn.prediction_dto import PredictionBBox, PredictionMask
+from supervisely.nn.inference import TaskType, CheckpointInfo, RuntimeType
 from mmengine import Config
 from mmdet.apis import inference_detector, init_detector
 from mmdet.registry import DATASETS
@@ -104,7 +105,6 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                         "Config should be placed in the same directory as the checkpoint file."
                     )
 
-        self.selected_model_name = model_params.get("arch_type")
         self.checkpoint_name = model_params.get("checkpoint_name")
         self.task_type = model_params.get("task_type")
 
@@ -114,13 +114,12 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         }
         return deploy_params
 
-    def load_model_meta(
-        self, model_source: str, cfg: Config, checkpoint_name: str = None, arch_type: str = None
-    ):
-        def set_common_meta(classes, task_type):
+    def load_model_meta(self, model_source: str, cfg: Config, checkpoint_name: str = None):
+        def set_common_meta(classes, task_type, arch_type):
             obj_classes = [
                 sly.ObjClass(
-                    name, sly.Bitmap if task_type == "instance segmentation" else sly.Rectangle
+                    name,
+                    sly.Bitmap if task_type == TaskType.INSTANCE_SEGMENTATION else sly.Rectangle,
                 )
                 for name in classes
             ]
@@ -133,6 +132,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
 
         if model_source == "Custom models":
             is_custom_checkpoint_path = self.custom_models_table.use_custom_checkpoint_path()
+            arch_type = cfg.sly_metadata.architecture_name
             if is_custom_checkpoint_path and cfg.dataset_type != "SuperviselyDatasetSplit":
 
                 # classes from .pth
@@ -145,7 +145,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                     if classes == []:
                         raise ValueError("Classes not found in the .pth and config file")
                 self.dataset_name = cfg.dataset_type
-                set_common_meta(classes, self.task_type)
+                set_common_meta(classes, self.task_type, arch_type)
 
             else:
                 classes = cfg.train_dataloader.dataset.selected_classes
@@ -153,15 +153,16 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 self.checkpoint_name = checkpoint_name
                 self.dataset_name = cfg.sly_metadata.project_name
                 self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
-                set_common_meta(classes, self.task_type)
+                set_common_meta(classes, self.task_type, arch_type)
         elif model_source == "Pretrained models":
+            arch_type = self.pretrained_models_table.get_selected_model_params()["arch_type"]
             dataset_class_name = cfg.dataset_type
             dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
             classes = dataset_meta["classes"]
             self.dataset_name = cfg.dataset_type
-            set_common_meta(classes, self.task_type)
+            set_common_meta(classes, self.task_type, arch_type)
 
-        self.model.test_cfg["score_thr"] = 0.45  # default confidence_thresh
+        self.model.test_cfg["score_thr"] = 0.45  # default confidence_threshold
 
     def load_model(
         self,
@@ -188,11 +189,10 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         :type checkpoint_url: str
         :param config_url: The URL where the model config can be downloaded.
         :type config_url: str
-        :param arch_type: The architecture type of the model.
-        :type arch_type: str
         """
         self.device = device
         self.task_type = task_type
+        self.runtime = RuntimeType.PYTORCH
 
         local_weights_path = os.path.join(self.model_dir, checkpoint_name)
         if model_source == "Pretrained models":
@@ -231,9 +231,25 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             self.model = init_detector(
                 cfg, checkpoint=local_weights_path, device=device, palette=[]
             )
-            self.load_model_meta(model_source, cfg, checkpoint_name, arch_type)
+            self.load_model_meta(model_source, cfg, checkpoint_name)
         except KeyError as e:
             raise KeyError(f"Error loading config file: {local_config_path}. Error: {e}")
+
+        checkpoint_name = os.path.splitext(checkpoint_name)[0]
+        if model_source == "Pretrained models":
+            custom_checkpoint_path = None
+        else:
+            custom_checkpoint_path = checkpoint_url
+            file_id = self.api.file.get_info_by_path(team_id, checkpoint_url).id
+            checkpoint_url = self.api.file.get_url(file_id)
+
+        self.checkpoint_info = CheckpointInfo(
+            checkpoint_name=checkpoint_name,
+            architecture=self.selected_model_name,
+            model_source=model_source,
+            checkpoint_url=checkpoint_url,
+            custom_checkpoint_path=custom_checkpoint_path,
+        )
 
     def get_info(self) -> dict:
         info = super().get_info()
@@ -346,8 +362,8 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
     def predict(
         self, image_path: str, settings: Dict[str, Any]
     ) -> List[Union[PredictionBBox, PredictionMask]]:
-        # set confidence_thresh
-        conf_tresh = settings.get("confidence_thresh", 0.45)
+        # set confidence_threshold
+        conf_tresh = settings.get("confidence_threshold", 0.45)
         if conf_tresh:
             # TODO: may be set recursively?
             self.model.test_cfg["score_thr"] = conf_tresh
