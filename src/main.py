@@ -22,6 +22,7 @@ import torch
 import supervisely as sly
 from supervisely.nn.artifacts.mmdetection import MMDetection3
 from supervisely.nn.prediction_dto import PredictionBBox, PredictionMask
+from supervisely.nn.inference import TaskType, CheckpointInfo
 from mmengine import Config
 from mmdet.apis import inference_detector, init_detector
 from mmdet.registry import DATASETS
@@ -120,7 +121,8 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         def set_common_meta(classes, task_type):
             obj_classes = [
                 sly.ObjClass(
-                    name, sly.Bitmap if task_type == "instance segmentation" else sly.Rectangle
+                    name,
+                    sly.Bitmap if task_type == TaskType.INSTANCE_SEGMENTATION else sly.Rectangle,
                 )
                 for name in classes
             ]
@@ -234,6 +236,21 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             self.load_model_meta(model_source, cfg, checkpoint_name, arch_type)
         except KeyError as e:
             raise KeyError(f"Error loading config file: {local_config_path}. Error: {e}")
+
+        if model_source == "Pretrained models":
+            custom_checkpoint_path = None
+            checkpoint_name = os.path.splitext(checkpoint_name)[0]
+        else:
+            custom_checkpoint_path = checkpoint_url
+            file_id = self.api.file.get_info_by_path(self.team_id, checkpoint_url).id
+            checkpoint_url = self.api.file.get_url(file_id)
+        self.checkpoint_info = CheckpointInfo(
+            checkpoint_name=checkpoint_name,
+            architecture=arch_type if arch_type else self.selected_model_name,
+            model_source=model_source,
+            checkpoint_url=checkpoint_url,
+            custom_checkpoint_path=custom_checkpoint_path,
+        )
 
     def get_info(self) -> dict:
         info = super().get_info()
