@@ -162,7 +162,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
             self.dataset_name = cfg.dataset_type
             set_common_meta(classes, self.task_type, arch_type)
 
-        self.model.test_cfg["score_thr"] = 0.45  # default confidence_thresh
+        self.model.test_cfg["score_thr"] = 0.45  # default confidence_threshold
 
     def load_model(
         self,
@@ -362,8 +362,8 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
     def predict(
         self, image_path: str, settings: Dict[str, Any]
     ) -> List[Union[PredictionBBox, PredictionMask]]:
-        # set confidence_thresh
-        conf_tresh = settings.get("confidence_thresh", 0.45)
+        # set confidence_threshold
+        conf_tresh = settings.get("confidence_threshold", 0.45)
         if conf_tresh:
             # TODO: may be set recursively?
             self.model.test_cfg["score_thr"] = conf_tresh
