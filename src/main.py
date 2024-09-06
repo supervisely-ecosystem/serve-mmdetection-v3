@@ -155,7 +155,7 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
                 self.task_type = cfg.sly_metadata.task_type.replace("_", " ")
                 set_common_meta(classes, self.task_type, arch_type)
         elif model_source == "Pretrained models":
-            arch_type = self.pretrained_models_table.get_selected_model_params()["arch_type"]
+            arch_type = self.pretrained_models_table.get_selected_arch_type()
             dataset_class_name = cfg.dataset_type
             dataset_meta = DATASETS.module_dict[dataset_class_name].METAINFO
             classes = dataset_meta["classes"]
@@ -238,12 +238,15 @@ class MMDetectionModel(sly.nn.inference.InstanceSegmentation):
         checkpoint_name = os.path.splitext(checkpoint_name)[0]
         if model_source == "Pretrained models":
             custom_checkpoint_path = None
+            model_name = self.pretrained_models_table.get_selected_model_params()["checkpoint_name"]
         else:
             custom_checkpoint_path = checkpoint_url
             file_id = self.api.file.get_info_by_path(team_id, checkpoint_url).id
             checkpoint_url = self.api.file.get_url(file_id)
+            model_name = cfg.sly_metadata.model_name
 
         self.checkpoint_info = CheckpointInfo(
+            model_name=model_name,
             checkpoint_name=checkpoint_name,
             architecture=self.selected_model_name,
             model_source=model_source,
