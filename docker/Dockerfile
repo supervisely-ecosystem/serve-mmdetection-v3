@@ -1,4 +1,4 @@
-FROM supervisely/base-py-sdk:6.72.68
+FROM supervisely/base-py-sdk:6.73.201
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y build-essential
@@ -12,6 +12,6 @@ RUN pip install yapf==0.40.1
 # mmdet
 RUN mim install mmdet==3.0.0 "mmcls>=1.0.0rc0"
 
-RUN pip3 install -U supervisely[model-benchmark]==6.73.180
+RUN pip3 install -U supervisely[model-benchmark]==6.73.201
 
-LABEL python_sdk_version=6.73.180
+LABEL python_sdk_version=6.73.201
