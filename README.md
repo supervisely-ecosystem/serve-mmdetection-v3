@@ -11,11 +11,11 @@
   <a href="#Acknowledgment">Acknowledgment</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/serve-mmdetection-v3)
-[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/serve-mmdetection-v3)
+[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/serve-mmdetection-v3)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/serve-mmdetection-v3.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/serve-mmdetection-v3.png)](https://supervise.ly)
+[![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/serve-mmdetection-v3.png)](https://supervisely.com)
+[![runs](https://app.supervisely.com/img/badges/runs/supervisely-ecosystem/serve-mmdetection-v3.png)](https://supervisely.com)
  
 </div>
 
@@ -45,7 +45,7 @@ Application key points:
 
 **Custom models**
 
-Model and directory structure must be acquired via [Train MMDetection V3](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/train-mmdetection-v3) app or manually created with the same directory structure.
+Model and directory structure must be acquired via [Train MMDetection V3](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/train-mmdetection-v3) app or manually created with the same directory structure.
 
 <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-v3" src="https://github.com/supervisely-ecosystem/serve-mmdetection-v3/assets/115161827/9a995648-3d4a-48a3-b89b-f395ae335086" height="60px" margin-bottom="20px"/>
 
@@ -94,16 +94,16 @@ Image.fromarray(res_img)
 # Related Apps
 
 
-- [Train MMDetection V3](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/train-mmdetection-v3) - app allows to play with different inference options, monitor metrics charts in real time, and save training artifacts to Team Files.  
+- [Train MMDetection V3](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/train-mmdetection-v3) - app allows to play with different inference options, monitor metrics charts in real time, and save training artifacts to Team Files.  
   <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/train-mmdetection-v3" src="https://github.com/supervisely-ecosystem/serve-mmdetection-v3/assets/115161827/9a995648-3d4a-48a3-b89b-f395ae335086" height="70px" margin-bottom="20px"/>
 
-- [Apply NN to Images Project](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fproject-dataset) - app allows to play with different inference options and visualize predictions in real time.  Once you choose inference settings you can apply model to all images in your project to visually analyze predictions and perform automatic data pre-labeling.   
+- [Apply NN to Images Project](https://ecosystem.supervisely.com/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fproject-dataset) - app allows to play with different inference options and visualize predictions in real time.  Once you choose inference settings you can apply model to all images in your project to visually analyze predictions and perform automatic data pre-labeling.   
     <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://i.imgur.com/M2Tp8lE.png" height="70px" margin-bottom="20px"/>  
 
-- [Apply NN to Videos Project](https://ecosystem.supervise.ly/apps/apply-nn-to-videos-project) - app allows to label your videos using served Supervisely models.  
+- [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) - app allows to label your videos using served Supervisely models.  
   <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="https://imgur.com/LDo8K1A.png" height="70px" margin-bottom="20px" />
 
-- [NN Image Labeling](https://ecosystem.supervise.ly/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fannotation-tool) - integrate any deployed NN to Supervisely Image Labeling UI. Configure inference settings and model output classes. Press the `Apply` button (or use a hotkey) and detections with their confidences will immediately appear on the image.   
+- [NN Image Labeling](https://ecosystem.supervisely.com/apps/supervisely-ecosystem%252Fnn-image-labeling%252Fannotation-tool) - integrate any deployed NN to Supervisely Image Labeling UI. Configure inference settings and model output classes. Press the `Apply` button (or use a hotkey) and detections with their confidences will immediately appear on the image.   
     <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/annotation-tool" src="https://i.imgur.com/hYEucNt.png" height="70px" margin-bottom="20px"/>
 
 # Acknowledgment
