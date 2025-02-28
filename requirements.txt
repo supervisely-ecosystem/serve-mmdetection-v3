@@ -1,0 +1,6 @@
+# see docker/Dockerfile
+
+git+https://github.com/supervisely/supervisely.git@nms
+
+# supervisely[model-benchmark]==6.73.239
+

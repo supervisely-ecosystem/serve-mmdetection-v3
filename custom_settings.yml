@@ -5,6 +5,6 @@ confidence_threshold: 0.45
 # note: some models (e.g. DINO) don't have the NMS
 nms_iou_thresh: 0.65
 
-# NMS force flag
-# (if True, the NMS will be forced even if the model doesn't have it)
-force_nms: False
+# NMS IoU threshold for the boxes that have ground truth
+# note: it can slow down the post-processing
+nms_iou_thresh_with_gt: 0.5
