@@ -18,7 +18,10 @@
   "docker_image": "supervisely/mmdet-3.0:1.1.15",
   "instance_version": "6.15.5",
   "task_location": "application_sessions",
-  "session_tags": ["deployed_nn"],
+  "session_tags": [
+      "deployed_nn",
+      "sly_video_tracking_by_detection"
+  ],
   "icon": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/9effaa36-9d28-49b6-9a0b-ede54addb253",
   "icon_cover": true,
   "poster": "https://github.com/supervisely-ecosystem/serve-mmdetection-2/assets/115161827/b5d59262-637a-491c-97da-5984ffac6319",
