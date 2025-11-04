@@ -15,7 +15,7 @@
     "serve"
   ],
   "description": "Deploy MMDetection 3.0 model as a REST API service",
-  "docker_image": "supervisely/mmdet-3.0:1.1.15",
+  "docker_image": "supervisely/mmdet-3.0:1.1.16",
   "instance_version": "6.15.5",
   "task_location": "application_sessions",
   "session_tags": [
